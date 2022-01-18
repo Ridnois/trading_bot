@@ -1,0 +1,24 @@
+{
+  "name": "trading_bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@pancakeswap-libs/sdk": "^1.0.1",
+    "abi-decoder": "^2.4.0",
+    "dotenv": "^10.0.0",
+    "ethers": "^5.5.3",
+    "web3": "^1.6.1"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-truffle5": "^2.0.3",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "hardhat": "^2.8.2",
+    "jest": "^27.4.7",
+    "nodemon": "^2.0.15"
+  }
+}
