@@ -5,10 +5,7 @@ import ABI from './ABI'
 
 dotenv.config()
 
-
-
 const { PANCAKE_FACTORY,
-	PANCAKE_ROUTER,
 	WBNB_ADDRESS,
 	BUSD_ADDRESS,
 	} = process.env
@@ -23,6 +20,16 @@ const pairAddressHandler = (pairFactory: any) => async (token0: fromEnv, token1:
 	return await pairFactory.methods.getPair(token0, token1).call()
 }
 
+const pairPrice = async (contract: any, ordered: boolean = false) => {
+    const price = await contract.methods.getReserves().call()
+    const [ token0, token1 ] = await price
+
+    if (ordered) {
+        return token0 > token1 ? token1 / token0 : token0 /token1
+    }
+
+    return token0 / token1
+}
 
 const initBinance = async () => {
 	const binance = rcpHandler('https://bsc-dataseed1.binance.org:443')
@@ -33,8 +40,7 @@ const initBinance = async () => {
 	const myPairAddress = await pairAddress(WBNB_ADDRESS, BUSD_ADDRESS)
 	const myPair = binanceContract(ABI.pair_abi as AbiItem[], myPairAddress)
 
-	console.log(myPair)
+    console.log(await pairPrice(myPair, true))
 }
-
 
 initBinance()
