@@ -39,6 +39,6 @@ describe('Trading bot', () => {
       ABI.busd_abi,
       wallet)
     const busdOnWei = await busdContract.balanceOf(wallet.address)
-    console.log(busdOnWei.toString())
+    expect(busdOnWei.toString()).toBe('0')
   })
 })
