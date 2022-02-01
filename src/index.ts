@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import * as dotenv from 'dotenv'
-import { ethers, ContractInterface, Contract } from 'ethers'
+import { ethers, ContractInterface, Contract, Wallet } from 'ethers'
 import ABI from './ABI'
 
 dotenv.config()
@@ -19,19 +19,19 @@ const {
  * you can have a handler for each EVM compatible blockchain
  * @param rcp: node rcp direction, default binance mainnet
  */
-const provider = (rcp = MAINNET_NODE_URL) => new ethers.providers.JsonRpcProvider(rcp)
+export const provider = (rcp = MAINNET_NODE_URL) => new ethers.providers.JsonRpcProvider(rcp)
 /**
  * @description wallet handler, handle each network by separate
  * @param provider: network provider 
  */
-const wallet = (provider: JsonRpcProvider) => (pk: string) => new ethers.Wallet(Buffer.from(pk, 'hex'), provider)
+export const wallet = (provider: JsonRpcProvider) => (pk: string) => new ethers.Wallet(Buffer.from(pk, 'hex'), provider)
 
-const contract = (provider: JsonRpcProvider ) => (abi: ContractInterface, address: string) => new ethers.Contract(address, abi, provider)
+export const contract = (provider: JsonRpcProvider | Wallet ) => (abi: ContractInterface, address: string) => new ethers.Contract(address, abi, provider)
 
 /*
  * @description utility function for 
  **/
-const pairRate = async (contract: Contract, ordered = false) => {
+export const pairRate = async (contract: Contract, ordered = false) => {
   const price = await contract.getReserves()
   let [ token0, token1 ] = price
   token0 = token0.toString()
@@ -57,4 +57,4 @@ const init = async () => {
   console.log(await pairRate(myPair))
 }
 
-init()
+//init()

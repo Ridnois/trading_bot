@@ -1,18 +1,21 @@
 import { ethers } from 'ethers'
-import Ganache from 'ganache-core'
+import Ganache from 'ganache'
 import ABI from '../src/ABI'
 import * as dotenv from 'dotenv'
 
 const startChain = async (MAINNET_NODE_URL: string, PRIVATE_KEY: string) => {
+
   const ganache = Ganache.provider({
-    fork: MAINNET_NODE_URL,
-    network_id: 1,
-    accounts: [
-      {
-        secretKey: Buffer.from(PRIVATE_KEY, 'hex'),
-        balance: ethers.utils.hexlify(ethers.utils.parseEther('1000'))
-      }
-    ]
+    chain: { networkId: 1 },
+    fork: { url: MAINNET_NODE_URL },
+    wallet: {
+      accounts: [
+        {
+          secretKey: `0x${PRIVATE_KEY}`,
+          balance: ethers.utils.hexlify(ethers.utils.parseEther('1000'))
+        }
+      ]
+    }
   })
 
   const provider = new ethers.providers.Web3Provider(ganache as any)
@@ -28,7 +31,6 @@ describe('Trading bot', () => {
   
     dotenv.config()
     const { MAINNET_NODE_URL = '', PRIVATE_KEY = ''} = process.env
-    console.log(PRIVATE_KEY.length)
     BUSD_ADDRESS = process.env.BUSD_ADDRESS
     wallet = await startChain(MAINNET_NODE_URL, PRIVATE_KEY)
   })
