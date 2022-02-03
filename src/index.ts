@@ -57,4 +57,4 @@ const init = async () => {
   console.log(await pairRate(myPair))
 }
 
-//init()
+init()
