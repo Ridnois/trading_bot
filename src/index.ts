@@ -1,57 +1,60 @@
+import { JsonRpcProvider } from '@ethersproject/providers'
 import * as dotenv from 'dotenv'
-import Web3 from 'web3'
-import { AbiItem } from 'web3-utils'
+import { ethers, ContractInterface, Contract, Wallet } from 'ethers'
 import ABI from './ABI'
 
 dotenv.config()
 
-const { PANCAKE_FACTORY, WBNB_ADDRESS, BUSD_ADDRESS } = process.env
+const {
+  MAINNET_NODE_URL,
+  PRIVATE_KEY,
+  PANCAKE_FACTORY,
+  WBNB_ADDRESS,
+  BUSD_ADDRESS, 
+} = process.env
 
-type fromEnv = string | undefined
-
-const rcpHandler = (rcp: string) => new Web3(rcp)
-
-const contractFactory =
-  (rcpHandler: Web3) => (abi: AbiItem[], address: fromEnv) =>
-    new rcpHandler.eth.Contract(abi, address)
-
-const pairAddressHandler =
-  (pairFactory: any) => async (token0: fromEnv, token1: fromEnv) => {
-    return await pairFactory.methods.getPair(token0, token1).call()
-  }
 
 /**
- * Get the ratio between two tokens on a liquidity pair
- *
- * @param contract: Liquidity pair contract
- * @param ordered: Order by less_scarse/most_scarse
- *
- *
- * */
-const pairRate = async (contract: any, ordered = false) => {
-  const price = await contract.methods.getReserves().call()
-  const [token0, token1] = await price
+ * @description handle connection with Web3 at given node rcp.
+ * you can have a handler for each EVM compatible blockchain
+ * @param rcp: node rcp direction, default binance mainnet
+ */
+export const provider = (rcp = MAINNET_NODE_URL) => new ethers.providers.JsonRpcProvider(rcp)
+/**
+ * @description wallet handler, handle each network by separate
+ * @param provider: network provider 
+ */
+export const wallet = (provider: JsonRpcProvider) => (pk: string) => new ethers.Wallet(Buffer.from(pk, 'hex'), provider)
 
-  if (ordered) {
-    return token0 > token1 ? token1 / token0 : token0 / token1
-  }
+export const contract = (provider: JsonRpcProvider | Wallet ) => (abi: ContractInterface, address: string) => new ethers.Contract(address, abi, provider)
 
-  return token0 / token1
+/*
+ * @description utility function for 
+ **/
+export const pairRate = async (contract: Contract, ordered = false) => {
+  const price = await contract.getReserves()
+  let [ token0, token1 ] = price
+  token0 = token0.toString()
+  token1 = token1.toString()
+  return [token0, token1]
 }
 
-async function initBinance() {
-  const binance = rcpHandler('https://bsc-dataseed1.binance.org:443')
-  const binanceContract = contractFactory(binance)
-  const pairFactoryContract = binanceContract(
-    ABI.factory_abi as AbiItem[],
-    PANCAKE_FACTORY
-  )
-  const pairAddress = pairAddressHandler(pairFactoryContract)
+const binance = provider(MAINNET_NODE_URL)
+// Handle this through cli or rest if you like
+const binanceWallet = wallet(binance)
+const myBinanceWallet = binanceWallet(PRIVATE_KEY)
 
-  const myPairAddress = await pairAddress(WBNB_ADDRESS, BUSD_ADDRESS)
-  const myPair = binanceContract(ABI.pair_abi as AbiItem[], myPairAddress)
 
-  console.log(await pairRate(myPair, true))
+
+const binanceContract = contract(binance)
+
+const pancakeFactoryContract = binanceContract(ABI.factory_abi, PANCAKE_FACTORY)
+
+const init = async () => {
+  const pairAddress = await pancakeFactoryContract.getPair(WBNB_ADDRESS, BUSD_ADDRESS)
+  const myPair = binanceContract(ABI.pair_abi, pairAddress)
+  
+  console.log(await pairRate(myPair))
 }
 
-initBinance()
+init()
