@@ -27,8 +27,10 @@ const startChain = async (MAINNET_NODE_URL: string, PRIVATE_KEY: string) => {
 describe('Trading bot', () => {
   let wallet: ethers.Wallet
   let BUSD_ADDRESS: string | undefined
+  let log: any;
   beforeAll(async () => {
-  
+    log = console.log
+    console.log = jest.fn() 
     dotenv.config()
     const { MAINNET_NODE_URL = '', PRIVATE_KEY = ''} = process.env
     BUSD_ADDRESS = process.env.BUSD_ADDRESS
@@ -42,7 +44,7 @@ describe('Trading bot', () => {
       ABI.busd_abi,
       wallet)
 
-    console.log(await busdContract.name())
+    log(await busdContract.name())
     const busdOnWei = await busdContract.balanceOf(wallet.address)
     expect(busdOnWei.toString()).toBe('0')
   })
