@@ -36,10 +36,13 @@ describe('Trading bot', () => {
   })
 
   test('BUSD balance of 0', async () => {
+    jest.setTimeout(20000)
     const busdContract = new ethers.Contract(
       BUSD_ADDRESS || '',
       ABI.busd_abi,
       wallet)
+
+    console.log(await busdContract.name())
     const busdOnWei = await busdContract.balanceOf(wallet.address)
     expect(busdOnWei.toString()).toBe('0')
   })
